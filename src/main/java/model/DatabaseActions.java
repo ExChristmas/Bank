@@ -1,5 +1,6 @@
 package model;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +29,47 @@ public class DatabaseActions {
 
     public void insertUser(String login, String password, String address, String phone) {
         try {
-            statement.executeUpdate("INSERT INTO User VALUES (" +
-                    login + ", " +
-                    password + ", " +
-                    address + ", " +
+            statement.executeUpdate("INSERT INTO User " +
+                    "(login, password, address, phone) VALUES ('" +
+                    login + "', '" +
+                    password + "', '" +
+                    address + "', '" +
                     phone +
+                    "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void insertAccount(int client_id, String acc_code) {
+        try {
+            statement.executeUpdate("INSERT INTO Account " +
+                    "(client_id, amount, acc_code) VALUES (" +
+                    client_id + ", " +
+                    new BigDecimal(0.0) + ", '" +
+                    acc_code +
+                    "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void insertOperation(Date date_of_operation, String acc_code, int account_transferred,
+                                int account_transferred_to, BigDecimal transfer_amount,
+                                BigDecimal amount_of_funds_to_transfer, BigDecimal amount_of_funds_after_transfer) {
+        try {
+            statement.executeUpdate("INSERT INTO Operation " +
+                    "(date_of_operation, acc_code, account_transferred," +
+                    "account_transferred_to, transfer_amount, amount_of_funds_to_transfer," +
+                    "amount_of_funds_after_transfer)" +
+                    " VALUES ('" +
+                    date_of_operation + "', '" +
+                    acc_code + "', " +
+                    account_transferred + ", " +
+                    account_transferred_to + ", " +
+                    transfer_amount + ", " +
+                    amount_of_funds_to_transfer + ", " +
+                    amount_of_funds_after_transfer +
                     ")");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -62,6 +99,7 @@ public class DatabaseActions {
                     "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +
                     "account_transferred int," +
                     "account_transferred_to int," +
+                    "transfer_amount decimal," +
                     "amount_of_funds_to_transfer decimal," +
                     "amount_of_funds_after_transfer decimal," +
                     "PRIMARY KEY (id)," +
@@ -85,9 +123,9 @@ public class DatabaseActions {
         }
     }
 
-    public List<String> selectAll(String table) {
+    public List<String> selectAllUsers() {
         try {
-            PreparedStatement query = connection.prepareStatement("SELECT * FROM " + table);
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM User");
             ResultSet rs = query.executeQuery();
             List<String> data = new ArrayList<String>();
             while (rs.next()) {
@@ -106,6 +144,61 @@ public class DatabaseActions {
             return null;
         }
     }
+
+    public List<String> selectAllAccounts() {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account");
+            ResultSet rs = query.executeQuery();
+            List<String> data = new ArrayList<String>();
+            while (rs.next()) {
+                data.add(String.format("%s, %s, %s, %s", rs.getString(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4)));
+            }
+            rs.close();
+            query.close();
+            return data;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Ошибка SQL !");
+            return null;
+        }
+    }
+
+    public List<String> selectAllOperations() {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Operation");
+            ResultSet rs = query.executeQuery();
+            List<String> data = new ArrayList<String>();
+            while (rs.next()) {
+                data.add(String.format("%s, %s, %s, %s, %s, %s, %s, %s", rs.getString(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4),
+                        rs.getString(5),
+                        rs.getString(6),
+                        rs.getString(7),
+                        rs.getString(8)));
+            }
+            rs.close();
+            query.close();
+            return data;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Ошибка SQL !");
+            return null;
+        }
+    }
+
+//    public void deleteFromAccount() {
+//        try {
+//            statement.executeUpdate("DELETE FROM Account WHERE client_id=1");
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            System.out.println("Ошибка SQL !");
+//        }
+//    }
 }
 
 //    public static void main(String[] args) {

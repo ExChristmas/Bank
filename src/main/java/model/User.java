@@ -1,7 +1,5 @@
 package model;
 
-import java.security.MessageDigest;
-
 public class User {
 
     private int id;
