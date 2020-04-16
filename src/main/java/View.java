@@ -10,7 +10,9 @@ class View {
         System.out.println("1.Создать пользователя\n" +
                 "2.Авторизация\n" +
                 "0.Выход");
-        return scanner.nextInt();
+        int mainMenu = scanner.nextInt();
+        scanner.nextLine();
+        return mainMenu;
     }
 
     int printAuthMenu() {
@@ -48,7 +50,6 @@ class View {
     }
     String getPhoneNumber() {
         System.out.println("Введите номер телефона:");
-        scanner.nextLine();
         return scanner.nextLine();
     }
 

@@ -123,6 +123,57 @@ public class DatabaseActions {
         }
     }
 
+    public boolean checkUserLogin(String login) {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
+            ResultSet rs = query.executeQuery();
+            boolean fl = rs.next();
+            rs.close();
+            query.close();
+            return fl;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean checkUserPhone(String phone) {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE phone = '" + phone + "'");
+            ResultSet rs = query.executeQuery();
+            boolean fl = rs.next();
+            rs.close();
+            query.close();
+            return fl;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public String selectUserPassword(String login) {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
+            ResultSet rs = query.executeQuery();
+            if(!rs.next()) {
+                query = connection.prepareStatement("SELECT * FROM User WHERE phone = '" + login + "'");
+                rs = query.executeQuery();
+                rs.next();
+                String password = rs.getString(3);
+                rs.close();
+                query.close();
+                return password;
+            } else {
+                String password = rs.getString(3);
+                rs.close();
+                query.close();
+                return password;
+            }
+        } catch (SQLException e) {
+            return "";
+        }
+    }
+
     public List<String> selectAllUsers() {
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User");
