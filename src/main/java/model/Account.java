@@ -9,7 +9,7 @@ public class Account {
     private BigDecimal amount;
     private String accCode;
 
-    Account (int id_client, BigDecimal amount, String accCode) {
+    public Account (int id_client, BigDecimal amount, String accCode) {
         this.id = 0;
         this.id_client = id_client;
         this.amount = amount;

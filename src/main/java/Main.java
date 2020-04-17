@@ -8,8 +8,8 @@ public class Main {
 
     public static void main(String[] args) {
         Controller controller = new Controller();
-//        controller.action();
-        DatabaseActions databaseActions = new DatabaseActions();
+        controller.action();
+//        DatabaseActions databaseActions = new DatabaseActions();
 //        databaseActions.createTables();
 //        databaseActions.insertUser("Alex", "jgfgbfkjf", "Sovetskaya", "89271626944");
 //        databaseActions.insertAccount(1, "RUB");
@@ -17,10 +17,10 @@ public class Main {
 //                new BigDecimal(300), new BigDecimal(500));
 //        databaseActions.deleteFromAccount();
 //        DatabaseActions.dropTables();
-        List<String> userData = databaseActions.selectAllUsers();
-        for (String row : userData) {
-            System.out.println(row);
-        }
+//        List<String> userData = databaseActions.selectAllUsers();
+//        for (String row : userData) {
+//            System.out.println(row);
+//        }
 //        System.out.println("*************************");
 //        List<String> accountData = databaseActions.selectAllAccounts();
 //        for (String row : accountData) {
@@ -31,7 +31,7 @@ public class Main {
 //        for (String row : operationData) {
 //            System.out.println(row);
 //        }
-        System.out.println(databaseActions.selectUserPassword("AlexMa"));
-        System.out.println(databaseActions.selectUserPassword("8927126944"));
+//        System.out.println(databaseActions.selectUserPassword("AlexMa"));
+//        System.out.println(databaseActions.selectUserPassword("8927126944"));
     }
 }

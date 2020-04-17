@@ -155,7 +155,7 @@ public class DatabaseActions {
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
             ResultSet rs = query.executeQuery();
-            if(!rs.next()) {
+            if (!rs.next()) {
                 query = connection.prepareStatement("SELECT * FROM User WHERE phone = '" + login + "'");
                 rs = query.executeQuery();
                 rs.next();
@@ -171,6 +171,42 @@ public class DatabaseActions {
             }
         } catch (SQLException e) {
             return "";
+        }
+    }
+
+    public int selectUserIdByLogin(String login) {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT id FROM User WHERE login = '" + login + "'");
+            ResultSet rs = query.executeQuery();
+            rs.next();
+            int id = rs.getInt(1);
+            rs.close();
+            query.close();
+            return id;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Ошибка SQL !");
+            return -1;
+        }
+    }
+
+    public List<String> selectUserByLogin(String login) {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
+            ResultSet rs = query.executeQuery();
+            List<String> data = new ArrayList<String>();
+            while (rs.next()) {
+                data.add(String.format("%s, %s, %s, %s", rs.getString(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4)));
+            }
+            rs.close();
+            query.close();
+            return data;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -191,7 +227,6 @@ public class DatabaseActions {
             return data;
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Ошибка SQL !");
             return null;
         }
     }
@@ -212,7 +247,6 @@ public class DatabaseActions {
             return data;
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Ошибка SQL !");
             return null;
         }
     }
@@ -237,61 +271,7 @@ public class DatabaseActions {
             return data;
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Ошибка SQL !");
             return null;
         }
     }
-
-//    public void deleteFromAccount() {
-//        try {
-//            statement.executeUpdate("DELETE FROM Account WHERE client_id=1");
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            System.out.println("Ошибка SQL !");
-//        }
-//    }
 }
-
-//    public static void main(String[] args) {
-//        connection();
-////        createTables();
-////        dropTables();
-//        try {
-////            statement.executeUpdate("DROP TABLE Operation");
-////            statement.executeUpdate("DROP TABLE Account");
-////            statement.executeUpdate("DROP TABLE User");
-//            statement.executeUpdate("INSERT INTO User VALUES (2," +
-//                                        "'Alex'," +
-//                                        "'kflvffg'," +
-//                                        "'Movetskaya d. 43," +
-//                                        "kv. 44'," +
-//                                        "'89274568978'" +
-//                                        ")");
-//            statement.executeUpdate("INSERT INTO User VALUES (3," +
-//                    "'Alex'," +
-//                    "'kflvffg'," +
-//                    "'Novetskaya d. 43," +
-//                    "kv. 44'," +
-//                    "'89274356587'" +
-//                    ")");
-//            List<String> data = selectAll("User");
-//            connection.close();
-//        } catch (SQLException e) {
-//            e.printStackTrace(); // обработка ошибок  DriverManager.getConnection
-//            System.out.println("Ошибка SQL !");
-//        }
-////        try {
-////            Class.forName(DB_Driver); //Проверяем наличие JDBC драйвера для работы с БД
-////            Connection connection = DriverManager.getConnection(DB_URL);//соединениесБД
-////            System.out.println("Соединение с СУБД выполнено.");
-////            Statement statement = connection.createStatement();
-////            connection.close();       // отключение от БД
-////            System.out.println("Отключение от СУБД выполнено.");
-////        } catch (ClassNotFoundException e) {
-////            e.printStackTrace(); // обработка ошибки  Class.forName
-////            System.out.println("JDBC драйвер для СУБД не найден!");
-////        } catch (SQLException e) {
-////            e.printStackTrace(); // обработка ошибок  DriverManager.getConnection
-////            System.out.println("Ошибка SQL !");
-////        }
-//    }

@@ -1,5 +1,8 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
 
     private int id;
@@ -7,6 +10,7 @@ public class User {
     private String password;
     private String address;
     private String phone;
+    private List<Account> accountList;
 
     public User (String login, String password, String address, String phone) {
         this.id = 0;
@@ -14,6 +18,7 @@ public class User {
         this.password = password;
         this.address = address;
         this.phone = phone;
+        this.accountList = new ArrayList<Account>();
     }
 
     public int getId() {
@@ -54,5 +59,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<Account> getAccountList() {
+        return this.accountList;
+    }
+
+    public void setAccountList(Account account) {
+        this.accountList.add(account);
     }
 }

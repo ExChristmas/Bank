@@ -12,25 +12,19 @@ class Controller {
 
     private View view;
     private DatabaseActions databaseActions;
-    private List<User> users;
-    private List<Account> accounts;
-    private List<Operation> operations;
+    private User user;
 
     Controller() {
         this.view = new View();
         this.databaseActions = new DatabaseActions();
-        users = new ArrayList<User>();
-        accounts = new ArrayList<Account>();
-        operations = new ArrayList<Operation>();
     }
 
-    private User createUser(String login, String password, String address, String phone) {
+    private void createUser(String login, String password, String address, String phone) {
         String hashCodePassword = sha1(password);
         this.databaseActions.insertUser(login, hashCodePassword, address, phone);
-        return new User(login, hashCodePassword, address, phone);
     }
 
-    private User registration() {
+    private void registration() {
         String login = view.getLogin();
         while (databaseActions.checkUserLogin(login)) {
             System.out.print("Такой логин уже существует! Придумайте другой.\n");
@@ -39,7 +33,6 @@ class Controller {
         String phone = view.getPhoneNumber();
         if(databaseActions.checkUserPhone(phone)) {
             System.out.println("Пользователь, с таким номером телефона уже зарегистрирован!");
-            return null;
         } else {
             String address = view.getAddress();
             while (true) {
@@ -47,7 +40,7 @@ class Controller {
                 String passwordReply = view.getPasswordReply();
                 if (password.equals(passwordReply)) {
                     System.out.println("Пользователь создан!");
-                    return createUser(login, password, address, phone);
+                    break;
                 } else {
                     System.out.println("Пароли не совпадают!");
                 }
@@ -55,81 +48,92 @@ class Controller {
         }
     }
 
-    private boolean autorizationCheck(String login, String password) {
+    //положить в объект user из базы список счётов
+    private User autorizationCheck(String login, String password) {
         String passwordIntoDB = databaseActions.selectUserPassword(login);
         if(passwordIntoDB.equals("")) {
             System.out.println("Неверный логин!");
-            return false;
+            return null;
         } else if(!sha1(password).equals(passwordIntoDB)) {
             System.out.println("Неверный пароль!");
-            return false;
+            return null;
         }
-        return true;
+        List<String> userList = databaseActions.selectUserByLogin(login);
+        return new User(login, password, userList.get(3), userList.get(4));
     }
 
-    private boolean autorisation() {
-        if ()
+    private User autorization() {
+        String login = view.getLogin();
+        String password = view.getPassword();
+        return autorizationCheck(login, password);
+    }
+
+    private void createAccount(User user, String accCode) {
+        int idUser = databaseActions.selectUserIdByLogin(user.getLogin());
+        databaseActions.insertAccount(idUser, accCode);
+        user.setAccountList(new Account(idUser, new BigDecimal(0.0), accCode));
+        System.out.println("Счёт создан!");
     }
 
     void action() {
-
         boolean flMain = true;
-
         while (flMain) {
-            switch (view.printMainMenu()) {
+            switch (this.view.printMainMenu()) {
                 case 0:
                     flMain = false;
                     break;
                 case 1:
-                    users.add(registration());
+                    registration();
                     break;
                 case 2:
+                    this.user = autorization();
+                    if (this.user == null) {
+                        boolean flAuth = true;
+                        while (flAuth) {
+                            switch (view.printAuthMenu()) {
+                                case 0:
+                                    flAuth = false;
+                                    break;
+                                case 1:
+                                    boolean flCur = true;
+                                    while (flCur) {
+                                        switch (view.getCurrency()) {
+                                            case 0:
+                                                flCur = false;
+                                                break;
+                                            case 1:
 
-                    boolean flAuth = true;
-                    while (flAuth) {
-                        switch (view.printAuthMenu()) {
-                            case 0:
-                                flAuth = false;
-                                break;
-                            case 1:
-
-                                boolean flCur = true;
-                                while (flCur) {
-                                    switch (view.getCurrency()) {
-                                        case 0:
-                                            flCur = false;
-                                            break;
-                                        case 1:
-                                            System.out.println("Создан счёт в рублях");
-                                            flCur = false;
-                                            break;
-                                        case 2:
-                                            System.out.println("Создан счёт в долларах");
-                                            flCur = false;
-                                            break;
-                                        case 3:
-                                            System.out.println("Создан счёт в евро");
-                                            flCur = false;
-                                            break;
-                                        case 4:
-                                            System.out.println("Создан счёт в юани");
-                                            flCur = false;
-                                            break;
+                                                System.out.println("Создан счёт в рублях");
+                                                flCur = false;
+                                                break;
+                                            case 2:
+                                                System.out.println("Создан счёт в долларах");
+                                                flCur = false;
+                                                break;
+                                            case 3:
+                                                System.out.println("Создан счёт в евро");
+                                                flCur = false;
+                                                break;
+                                            case 4:
+                                                System.out.println("Создан счёт в юани");
+                                                flCur = false;
+                                                break;
+                                        }
                                     }
-                                }
-                                break;
-                            case 2:
-                                /*............................*/
-                                BigDecimal sum = view.getTransferAmount();
-                                System.out.println("Счёт пополнен на " + sum);
-                                break;
-                            case 3:
-                                String phoneNumber = view.getPhoneNumber();
-                                System.out.println("Выполнен перевод по номеру телефона: " + phoneNumber);
-                                break;
-                            case 4:
-                                System.out.println("Вывод из таблицы Operation");
-                                break;
+                                    break;
+                                case 2:
+                                    /*............................*/
+                                    BigDecimal sum = view.getTransferAmount();
+                                    System.out.println("Счёт пополнен на " + sum);
+                                    break;
+                                case 3:
+                                    String phoneNumber = view.getPhoneNumber();
+                                    System.out.println("Выполнен перевод по номеру телефона: " + phoneNumber);
+                                    break;
+                                case 4:
+                                    System.out.println("Вывод из таблицы Operation");
+                                    break;
+                            }
                         }
                     }
             }
