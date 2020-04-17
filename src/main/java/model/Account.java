@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 
 public class Account {
 
-    private int id;
+    private String id;
     private int id_client;
     private BigDecimal amount;
     private String accCode;
 
-    public Account (int id_client, BigDecimal amount, String accCode) {
-        this.id = 0;
+    public Account (String id, int id_client, BigDecimal amount, String accCode) {
+        this.id = id;
         this.id_client = id_client;
         this.amount = amount;
         this.accCode = accCode;
@@ -21,11 +21,15 @@ public class Account {
         return this.amount + " | " + this.accCode;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void replenishAccount(BigDecimal sum) {
+        this.amount = this.getAmount().add(sum);
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -59,7 +59,7 @@ class View {
     }
 
     BigDecimal getTransferAmount() {
-        System.out.println("Введите сумму");
+        System.out.println("Введите сумму:");
         return scanner.nextBigDecimal();
     }
 
@@ -69,7 +69,7 @@ class View {
         }
         int num = scanner.nextInt();
         if (num >= 1 && num <= accounts.size()) {
-            return num;
+            return num - 1;
         } else {
             return -1;
         }

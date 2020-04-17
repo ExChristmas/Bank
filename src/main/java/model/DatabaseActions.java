@@ -26,15 +26,24 @@ public class DatabaseActions {
         }
     }
 
-
+    public void updateAccountAmmountById(String id, BigDecimal amount) {
+        try {
+            statement.executeUpdate("UPDATE Account SET " +
+                    "amount = " + amount +
+                    " WHERE id = '" + id + "'");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public ArrayList<ArrayList<String>> selectAccountByClientId(int client_id){ // возврат записей из таблицы со счетами по foreign key клиента
         try {
-            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account WHERE client_id = " + client_id + "");
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account WHERE client_id = " + client_id);
             ResultSet rs = query.executeQuery();
             ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
             while (rs.next()) {
                 ArrayList<String> acc = new ArrayList<String>();
+                acc.add(rs.getString(1));
                 acc.add(rs.getString(2));
                 acc.add(rs.getString(3));
                 acc.add(rs.getString(4));
@@ -209,7 +218,7 @@ public class DatabaseActions {
                     "phone varchar(20)," +
                     "PRIMARY KEY (id))");
             statement.execute("CREATE TABLE Account (" +
-                    "id int IDENTITY(1,1)," +
+                    "id uuid default random_uuid()," +
                     "client_id int," +
                     "amount decimal(20, 5)," +
                     "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +

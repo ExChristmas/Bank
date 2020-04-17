@@ -4,6 +4,7 @@ import model.Operation;
 import model.User;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +57,8 @@ class Controller {
         List<Account> accountList = new ArrayList<Account>();
         ArrayList<ArrayList<String>> data = databaseActions.selectAccountByClientId(idUser);
         for (ArrayList<String> datum : data) {
-            Account account = new Account(Integer.parseInt(datum.get(0)),
-                    new BigDecimal(datum.get(1)), datum.get(2));
+            Account account = new Account(datum.get(0), Integer.parseInt(datum.get(1)),
+                    new BigDecimal(datum.get(2)), datum.get(3));
             accountList.add(account);
         }
         return accountList;
@@ -91,8 +92,8 @@ class Controller {
     private void createAccount(User user, String accCode) {
         int idUser = databaseActions.selectUserIdByLogin(user.getLogin());
         databaseActions.insertAccount(idUser, accCode);
-        user.setAddAccountList(new Account(idUser, new BigDecimal(0.0), accCode));
-        System.out.println("Счёт" + accCode +"создан!");
+        user.setAddAccountList(new Account("", idUser, new BigDecimal(0.0), accCode));
+        System.out.println("Создан счёт в валюте " + accCode + "!");
     }
 
     /***************************************Replenishment***************************************************/
@@ -105,10 +106,16 @@ class Controller {
             for(Account account : user.getAccountList()) {
                 accounts.add(account.toString());
             }
-            int numOfAcc = this.view.chooseAnAccount(accounts);
-            System.out.println(accounts.get(numOfAcc - 1));
+            Account account = user.getAccountList().get(this.view.chooseAnAccount(accounts));
+            BigDecimal sum = view.getTransferAmount();
+            account.replenishAccount(sum);
+            databaseActions.updateAccountAmmountById(account.getId(),
+                    account.getAmount().add(sum)); //округление до 5 знаков
+            System.out.println("Счёт пополнен на " + sum);
         }
     }
+
+
 
     void action() {
         boolean flMain = true;
@@ -138,22 +145,18 @@ class Controller {
                                                 break;
                                             case 1:
                                                 createAccount(user, "RUB");
-                                                System.out.println("Создан счёт в рублях");
                                                 flCur = false;
                                                 break;
                                             case 2:
                                                 createAccount(user, "USD");
-                                                System.out.println("Создан счёт в долларах");
                                                 flCur = false;
                                                 break;
                                             case 3:
                                                 createAccount(user, "EUR");
-                                                System.out.println("Создан счёт в евро");
                                                 flCur = false;
                                                 break;
                                             case 4:
                                                 createAccount(user, "CYN");
-                                                System.out.println("Создан счёт в юанях");
                                                 flCur = false;
                                                 break;
                                         }
@@ -161,8 +164,6 @@ class Controller {
                                     break;
                                 case 2:
                                     replenishment(this.user);
-                                    BigDecimal sum = view.getTransferAmount();
-                                    System.out.println("Счёт пополнен на " + sum);
                                     break;
                                 case 3:
                                     String phoneNumber = view.getPhoneNumber();
