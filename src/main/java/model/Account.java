@@ -16,6 +16,11 @@ public class Account {
         this.accCode = accCode;
     }
 
+    @Override
+    public String toString() {
+        return this.amount + " | " + this.accCode;
+    }
+
     public int getId() {
         return id;
     }

@@ -65,7 +65,11 @@ public class User {
         return this.accountList;
     }
 
-    public void setAccountList(Account account) {
+    public void setAccountList(List<Account> accountList) {
+        this.accountList = accountList;
+    }
+
+    public void setAddAccountList(Account account) {
         this.accountList.add(account);
     }
 }

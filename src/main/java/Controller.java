@@ -17,13 +17,14 @@ class Controller {
     Controller() {
         this.view = new View();
         this.databaseActions = new DatabaseActions();
+        this.user = null;
     }
 
     private void createUser(String login, String password, String address, String phone) {
         String hashCodePassword = sha1(password);
         this.databaseActions.insertUser(login, hashCodePassword, address, phone);
     }
-
+/************************************Registration user******************************************************/
     private void registration() {
         String login = view.getLogin();
         while (databaseActions.checkUserLogin(login)) {
@@ -39,6 +40,7 @@ class Controller {
                 String password = view.getPassword();
                 String passwordReply = view.getPasswordReply();
                 if (password.equals(passwordReply)) {
+                    databaseActions.insertUser(login, sha1(password), address, phone);
                     System.out.println("Пользователь создан!");
                     break;
                 } else {
@@ -48,7 +50,19 @@ class Controller {
         }
     }
 
-    //положить в объект user из базы список счётов
+    /*****************************************Autorization user*************************************************/
+
+    private List<Account> returnAccounts(int idUser) {
+        List<Account> accountList = new ArrayList<Account>();
+        ArrayList<ArrayList<String>> data = databaseActions.selectAccountByClientId(idUser);
+        for (ArrayList<String> datum : data) {
+            Account account = new Account(Integer.parseInt(datum.get(0)),
+                    new BigDecimal(datum.get(1)), datum.get(2));
+            accountList.add(account);
+        }
+        return accountList;
+    }
+
     private User autorizationCheck(String login, String password) {
         String passwordIntoDB = databaseActions.selectUserPassword(login);
         if(passwordIntoDB.equals("")) {
@@ -59,7 +73,11 @@ class Controller {
             return null;
         }
         List<String> userList = databaseActions.selectUserByLogin(login);
-        return new User(login, password, userList.get(3), userList.get(4));
+        User usr = new User(login, password, userList.get(2), userList.get(3));
+        if (usr.getAccountList().isEmpty()) {
+            usr.setAccountList(returnAccounts(databaseActions.selectUserIdByLogin(login)));
+        }
+            return usr;
     }
 
     private User autorization() {
@@ -68,11 +86,28 @@ class Controller {
         return autorizationCheck(login, password);
     }
 
+    /**************************************Create account****************************************************/
+
     private void createAccount(User user, String accCode) {
         int idUser = databaseActions.selectUserIdByLogin(user.getLogin());
         databaseActions.insertAccount(idUser, accCode);
-        user.setAccountList(new Account(idUser, new BigDecimal(0.0), accCode));
-        System.out.println("Счёт создан!");
+        user.setAddAccountList(new Account(idUser, new BigDecimal(0.0), accCode));
+        System.out.println("Счёт" + accCode +"создан!");
+    }
+
+    /***************************************Replenishment***************************************************/
+
+    private void replenishment(User user) {
+        if (user.getAccountList().isEmpty()) {
+            System.out.println("У Вас нет ни одного счёта!");
+        } else {
+            List<String> accounts = new ArrayList<String>();
+            for(Account account : user.getAccountList()) {
+                accounts.add(account.toString());
+            }
+            int numOfAcc = this.view.chooseAnAccount(accounts);
+            System.out.println(accounts.get(numOfAcc - 1));
+        }
     }
 
     void action() {
@@ -87,7 +122,7 @@ class Controller {
                     break;
                 case 2:
                     this.user = autorization();
-                    if (this.user == null) {
+                    if (this.user != null) {
                         boolean flAuth = true;
                         while (flAuth) {
                             switch (view.printAuthMenu()) {
@@ -102,27 +137,30 @@ class Controller {
                                                 flCur = false;
                                                 break;
                                             case 1:
-
+                                                createAccount(user, "RUB");
                                                 System.out.println("Создан счёт в рублях");
                                                 flCur = false;
                                                 break;
                                             case 2:
+                                                createAccount(user, "USD");
                                                 System.out.println("Создан счёт в долларах");
                                                 flCur = false;
                                                 break;
                                             case 3:
+                                                createAccount(user, "EUR");
                                                 System.out.println("Создан счёт в евро");
                                                 flCur = false;
                                                 break;
                                             case 4:
-                                                System.out.println("Создан счёт в юани");
+                                                createAccount(user, "CYN");
+                                                System.out.println("Создан счёт в юанях");
                                                 flCur = false;
                                                 break;
                                         }
                                     }
                                     break;
                                 case 2:
-                                    /*............................*/
+                                    replenishment(this.user);
                                     BigDecimal sum = view.getTransferAmount();
                                     System.out.println("Счёт пополнен на " + sum);
                                     break;

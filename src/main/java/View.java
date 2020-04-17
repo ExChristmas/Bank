@@ -7,30 +7,30 @@ class View {
     private Scanner scanner = new Scanner(System.in);
 
     int printMainMenu() {
-        System.out.println("1.Создать пользователя\n" +
-                "2.Авторизация\n" +
-                "0.Выход");
+        System.out.println("1)Создать пользователя\n" +
+                "2)Авторизация\n" +
+                "0)Выход");
         int mainMenu = scanner.nextInt();
         scanner.nextLine();
         return mainMenu;
     }
 
     int printAuthMenu() {
-        System.out.println("1.Создать счёт\n" +
-                "2.Пополненить счёт\n" +
-                "3.Перевести средства на другой счёт\n" +
-                "4.Просмотр истории операций\n" +
-                "0.Назад");
+        System.out.println("1)Создать счёт\n" +
+                "2)Пополненить счёт\n" +
+                "3)Перевести средства на другой счёт\n" +
+                "4)Просмотр истории операций\n" +
+                "0)Назад");
         return scanner.nextInt();
     }
 
     int getCurrency() {
         System.out.println("Выберите валюту:\n" +
-                "1.RUB\n" +
-                "2.USD\n" +
-                "3.EUR\n" +
-                "4.CNY\n" +
-                "0.Назад");
+                "1)RUB\n" +
+                "2)USD\n" +
+                "3)EUR\n" +
+                "4)CNY\n" +
+                "0)Назад");
         return scanner.nextInt();
     }
 
@@ -64,8 +64,8 @@ class View {
     }
 
     int chooseAnAccount(List<String> accounts) {
-        for (int i = 0; i < accounts.size(); i++) {
-            System.out.println(i + "." + accounts.get(i));
+        for (int i = 1; i <= accounts.size(); i++) {
+            System.out.println(i + ")" + accounts.get(i - 1));
         }
         int num = scanner.nextInt();
         if (num >= 1 && num <= accounts.size()) {

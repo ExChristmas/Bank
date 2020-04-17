@@ -27,103 +27,27 @@ public class DatabaseActions {
     }
 
 
-    public void insertUser(String login, String password, String address, String phone) {
+
+    public ArrayList<ArrayList<String>> selectAccountByClientId(int client_id){ // возврат записей из таблицы со счетами по foreign key клиента
         try {
-            statement.executeUpdate("INSERT INTO User " +
-                    "(login, password, address, phone) VALUES ('" +
-                    login + "', '" +
-                    password + "', '" +
-                    address + "', '" +
-                    phone +
-                    "')");
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account WHERE client_id = " + client_id + "");
+            ResultSet rs = query.executeQuery();
+            ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
+            while (rs.next()) {
+                ArrayList<String> acc = new ArrayList<String>();
+                acc.add(rs.getString(2));
+                acc.add(rs.getString(3));
+                acc.add(rs.getString(4));
+                data.add(acc);
+            }
+            return data;
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
     }
 
-    public void insertAccount(int client_id, String acc_code) {
-        try {
-            statement.executeUpdate("INSERT INTO Account " +
-                    "(client_id, amount, acc_code) VALUES (" +
-                    client_id + ", " +
-                    new BigDecimal(0.0) + ", '" +
-                    acc_code +
-                    "')");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void insertOperation(Date date_of_operation, String acc_code, int account_transferred,
-                                int account_transferred_to, BigDecimal transfer_amount,
-                                BigDecimal amount_of_funds_to_transfer, BigDecimal amount_of_funds_after_transfer) {
-        try {
-            statement.executeUpdate("INSERT INTO Operation " +
-                    "(date_of_operation, acc_code, account_transferred," +
-                    "account_transferred_to, transfer_amount, amount_of_funds_to_transfer," +
-                    "amount_of_funds_after_transfer)" +
-                    " VALUES ('" +
-                    date_of_operation + "', '" +
-                    acc_code + "', " +
-                    account_transferred + ", " +
-                    account_transferred_to + ", " +
-                    transfer_amount + ", " +
-                    amount_of_funds_to_transfer + ", " +
-                    amount_of_funds_after_transfer +
-                    ")");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void createTables() {
-        try {
-            statement.execute("CREATE TABLE User (" +
-                    "id int IDENTITY(1,1)," +
-                    "login varchar(255)," +
-                    "password varchar(255)," +
-                    "address varchar(255)," +
-                    "phone varchar(20)," +
-                    "PRIMARY KEY (id))");
-            statement.execute("CREATE TABLE Account (" +
-                    "id int IDENTITY(1,1)," +
-                    "client_id int," +
-                    "amount decimal(20, 5)," +
-                    "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +
-                    "PRIMARY KEY (id)," +
-                    "FOREIGN KEY (client_id) REFERENCES User(id)" +
-                    ")");
-            statement.execute("CREATE TABLE Operation (" +
-                    "id int IDENTITY(1,1)," +
-                    "date_of_operation date," +
-                    "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +
-                    "account_transferred int," +
-                    "account_transferred_to int," +
-                    "transfer_amount decimal," +
-                    "amount_of_funds_to_transfer decimal," +
-                    "amount_of_funds_after_transfer decimal," +
-                    "PRIMARY KEY (id)," +
-                    "FOREIGN KEY (account_transferred) REFERENCES Account(id)," +
-                    "FOREIGN KEY (account_transferred_to) REFERENCES Account(id)" +
-                    ")");
-        } catch (SQLException e) {
-            e.printStackTrace(); // обработка ошибок  DriverManager.getConnection
-            System.out.println("Ошибка SQL !");
-        }
-    }
-
-    public static void dropTables() {
-        try {
-            statement.executeUpdate("DROP TABLE Operation");
-            statement.executeUpdate("DROP TABLE Account");
-            statement.executeUpdate("DROP TABLE User");
-        } catch (SQLException e) {
-            e.printStackTrace(); // обработка ошибок  DriverManager.getConnection
-            System.out.println("Ошибка SQL !");
-        }
-    }
-
-    public boolean checkUserLogin(String login) {
+    public boolean checkUserLogin(String login) { // проверка есть в базе пользователь с заданным логином
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
             ResultSet rs = query.executeQuery();
@@ -137,7 +61,7 @@ public class DatabaseActions {
         }
     }
 
-    public boolean checkUserPhone(String phone) {
+    public boolean checkUserPhone(String phone) { // проверка, есть ли в базе пользователь с заданным номером телефона
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE phone = '" + phone + "'");
             ResultSet rs = query.executeQuery();
@@ -151,7 +75,7 @@ public class DatabaseActions {
         }
     }
 
-    public String selectUserPassword(String login) {
+    public String selectUserPassword(String login) { // возврат записи из таблицы User по логину или номеру телефона
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
             ResultSet rs = query.executeQuery();
@@ -174,7 +98,7 @@ public class DatabaseActions {
         }
     }
 
-    public int selectUserIdByLogin(String login) {
+    public int selectUserIdByLogin(String login) { // возврат id пользователя по логину
         try {
             PreparedStatement query = connection.prepareStatement("SELECT id FROM User WHERE login = '" + login + "'");
             ResultSet rs = query.executeQuery();
@@ -190,17 +114,16 @@ public class DatabaseActions {
         }
     }
 
-    public List<String> selectUserByLogin(String login) {
+    public List<String> selectUserByLogin(String login) { // возврат пользователя по логину
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
             ResultSet rs = query.executeQuery();
             List<String> data = new ArrayList<String>();
-            while (rs.next()) {
-                data.add(String.format("%s, %s, %s, %s", rs.getString(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4)));
-            }
+            rs.next();
+            data.add(rs.getString(2));
+            data.add(rs.getString(3));
+            data.add(rs.getString(4));
+            data.add(rs.getString(5));
             rs.close();
             query.close();
             return data;
@@ -210,6 +133,7 @@ public class DatabaseActions {
         }
     }
 
+    /************************************************************************************************************/
     public List<String> selectAllUsers() {
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User");
@@ -272,6 +196,102 @@ public class DatabaseActions {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public void createTables() {
+        try {
+            statement.execute("CREATE TABLE User (" +
+                    "id int IDENTITY(1,1)," +
+                    "login varchar(255)," +
+                    "password varchar(255)," +
+                    "address varchar(255)," +
+                    "phone varchar(20)," +
+                    "PRIMARY KEY (id))");
+            statement.execute("CREATE TABLE Account (" +
+                    "id int IDENTITY(1,1)," +
+                    "client_id int," +
+                    "amount decimal(20, 5)," +
+                    "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +
+                    "PRIMARY KEY (id)," +
+                    "FOREIGN KEY (client_id) REFERENCES User(id)" +
+                    ")");
+            statement.execute("CREATE TABLE Operation (" +
+                    "id int IDENTITY(1,1)," +
+                    "date_of_operation date," +
+                    "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +
+                    "account_transferred int," +
+                    "account_transferred_to int," +
+                    "transfer_amount decimal," +
+                    "amount_of_funds_to_transfer decimal," +
+                    "amount_of_funds_after_transfer decimal," +
+                    "PRIMARY KEY (id)," +
+                    "FOREIGN KEY (account_transferred) REFERENCES Account(id)," +
+                    "FOREIGN KEY (account_transferred_to) REFERENCES Account(id)" +
+                    ")");
+        } catch (SQLException e) {
+            e.printStackTrace(); // обработка ошибок  DriverManager.getConnection
+            System.out.println("Ошибка SQL !");
+        }
+    }
+
+    public static void dropTables() {
+        try {
+            statement.executeUpdate("DROP TABLE Operation");
+            statement.executeUpdate("DROP TABLE Account");
+            statement.executeUpdate("DROP TABLE User");
+        } catch (SQLException e) {
+            e.printStackTrace(); // обработка ошибок  DriverManager.getConnection
+            System.out.println("Ошибка SQL !");
+        }
+    }
+
+    public void insertUser(String login, String password, String address, String phone) { // занесение пользователя в базу
+        try {
+            statement.executeUpdate("INSERT INTO User " +
+                    "(login, password, address, phone) VALUES ('" +
+                    login + "', '" +
+                    password + "', '" +
+                    address + "', '" +
+                    phone +
+                    "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void insertAccount(int client_id, String acc_code) { // занесение счёта в базу
+        try {
+            statement.executeUpdate("INSERT INTO Account " +
+                    "(client_id, amount, acc_code) VALUES (" +
+                    client_id + ", " +
+                    new BigDecimal(0.0) + ", '" +
+                    acc_code +
+                    "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void insertOperation(Date date_of_operation, String acc_code, int account_transferred,
+                                int account_transferred_to, BigDecimal transfer_amount,
+                                BigDecimal amount_of_funds_to_transfer, BigDecimal amount_of_funds_after_transfer) { // занесение операции в базу
+        try {
+            statement.executeUpdate("INSERT INTO Operation " +
+                    "(date_of_operation, acc_code, account_transferred," +
+                    "account_transferred_to, transfer_amount, amount_of_funds_to_transfer," +
+                    "amount_of_funds_after_transfer)" +
+                    " VALUES ('" +
+                    date_of_operation + "', '" +
+                    acc_code + "', " +
+                    account_transferred + ", " +
+                    account_transferred_to + ", " +
+                    transfer_amount + ", " +
+                    amount_of_funds_to_transfer + ", " +
+                    amount_of_funds_after_transfer +
+                    ")");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
