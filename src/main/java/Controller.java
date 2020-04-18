@@ -27,21 +27,21 @@ class Controller {
     }
 /************************************Registration user******************************************************/
     private void registration() {
-        String login = view.getLogin();
-        while (databaseActions.checkUserLogin(login)) {
+        String login = this.view.getLogin();
+        while (this.databaseActions.checkUserLogin(login)) {
             System.out.print("Такой логин уже существует! Придумайте другой.\n");
-            login = view.getLogin();
+            login = this.view.getLogin();
         }
-        String phone = view.getPhoneNumber();
-        if(databaseActions.checkUserPhone(phone)) {
+        String phone = this.view.getPhoneNumber();
+        if(this.databaseActions.checkUserPhone(phone)) {
             System.out.println("Пользователь, с таким номером телефона уже зарегистрирован!");
         } else {
-            String address = view.getAddress();
+            String address = this.view.getAddress();
             while (true) {
-                String password = view.getPassword();
-                String passwordReply = view.getPasswordReply();
+                String password = this.view.getPassword();
+                String passwordReply = this.view.getPasswordReply();
                 if (password.equals(passwordReply)) {
-                    databaseActions.insertUser(login, sha1(password), address, phone);
+                    this.databaseActions.insertUser(login, sha1(password), address, phone);
                     System.out.println("Пользователь создан!");
                     break;
                 } else {
@@ -55,7 +55,7 @@ class Controller {
 
     private List<Account> returnAccounts(int idUser) {
         List<Account> accountList = new ArrayList<Account>();
-        ArrayList<ArrayList<String>> data = databaseActions.selectAccountByClientId(idUser);
+        ArrayList<ArrayList<String>> data = this.databaseActions.selectAccountByClientId(idUser);
         for (ArrayList<String> datum : data) {
             Account account = new Account(datum.get(0), Integer.parseInt(datum.get(1)),
                     new BigDecimal(datum.get(2)), datum.get(3));
@@ -65,7 +65,7 @@ class Controller {
     }
 
     private User autorizationCheck(String login, String password) {
-        String passwordIntoDB = databaseActions.selectUserPassword(login);
+        String passwordIntoDB = this.databaseActions.selectUserPassword(login);
         if(passwordIntoDB.equals("")) {
             System.out.println("Неверный логин!");
             return null;
@@ -73,25 +73,25 @@ class Controller {
             System.out.println("Неверный пароль!");
             return null;
         }
-        List<String> userList = databaseActions.selectUserByLogin(login);
+        List<String> userList = this.databaseActions.selectUserByLogin(login);
         User usr = new User(login, password, userList.get(2), userList.get(3));
         if (usr.getAccountList().isEmpty()) {
-            usr.setAccountList(returnAccounts(databaseActions.selectUserIdByLogin(login)));
+            usr.setAccountList(returnAccounts(this.databaseActions.selectUserIdByLogin(login)));
         }
             return usr;
     }
 
     private User autorization() {
-        String login = view.getLogin();
-        String password = view.getPassword();
+        String login = this.view.getLogin();
+        String password = this.view.getPassword();
         return autorizationCheck(login, password);
     }
 
     /**************************************Create account****************************************************/
 
     private void createAccount(User user, String accCode) {
-        int idUser = databaseActions.selectUserIdByLogin(user.getLogin());
-        databaseActions.insertAccount(idUser, accCode);
+        int idUser = this.databaseActions.selectUserIdByLogin(user.getLogin());
+        this.databaseActions.insertAccount(idUser, accCode);
         user.setAddAccountList(new Account("", idUser, new BigDecimal(0.0), accCode));
         System.out.println("Создан счёт в валюте " + accCode + "!");
     }
@@ -107,15 +107,58 @@ class Controller {
                 accounts.add(account.toString());
             }
             Account account = user.getAccountList().get(this.view.chooseAnAccount(accounts));
-            BigDecimal sum = view.getTransferAmount();
+            BigDecimal sum = this.view.getTransferAmount();
             account.replenishAccount(sum);
-            databaseActions.updateAccountAmmountById(account.getId(),
+            this.databaseActions.updateAccountAmmountById(account.getId(),
                     account.getAmount().add(sum)); //округление до 5 знаков
             System.out.println("Счёт пополнен на " + sum);
         }
     }
 
+    /********************************************Money transaction**************************************************/
 
+    private void transction() {
+        if (this.user.getAccountList().isEmpty()) {
+            System.out.println("У Вас нет ни одного счёта!");
+        } else {
+            List<String> accounts = new ArrayList<String>();
+            for (Account account : this.user.getAccountList()) {
+                accounts.add(account.toString());
+            }
+            Account accountUser = this.user.getAccountList().get(this.view.chooseAnAccount(accounts)); //выбираем счёт с которого переводим
+            String numberPhone = this.view.getPhoneNumber(); // запрашиваем номер телефона другого пользователя
+            int idUserPhone = this.databaseActions.selectUserIdByPhone(numberPhone); // по номеру телефона узнаём id другого пользователя
+            List<String> firstAccountUser = this.databaseActions.selectFirstAccountByClientId(idUserPhone); // вычисляем первый попавшийся счёт другого пользователя
+            Account anotherAccountUser = new Account(firstAccountUser.get(0), Integer.parseInt(firstAccountUser.get(1)),
+                    new BigDecimal(firstAccountUser.get(2)), firstAccountUser.get(3)); // оборачиваем в объект
+            BigDecimal sum = this.view.getTransferAmount(); // запрашиваем сумму для перевода
+            if (sum.compareTo(accountUser.getAmount()) < 0) { // если запрашиваемая сумма меньше той, что есть на счёте
+                System.out.println("Недостаточно средств на счёте!"); // то выводим ошибку
+            } else { // иначе, совершаем перевод
+                BigDecimal sumTransf = sum;
+                String accCodeAccount = accountUser.getAccCode(); // берём валюты счетов
+                String accCodeAtherAccount = anotherAccountUser.getAccCode();
+                if (!accCodeAccount.equals(accCodeAtherAccount)) { // если валюты счетов не равны
+                    sumTransf = ConverterMoney.convert(sum, accCodeAccount, accCodeAtherAccount); // конвертируем сумму в валюте счёта зачисления
+                }
+                // сохраняем старые значения счётов
+                BigDecimal oldAmountAccountUser = accountUser.getAmount();
+                BigDecimal oldAmountAnotherAccountUser = anotherAccountUser.getAmount();
+                accountUser.deductFromTheAccount(sum); // вычитаем переведённую сумму из счёта
+                anotherAccountUser.replenishAccount(sumTransf); // добавляем переведённую сумму на счёт
+                this.databaseActions.updateAccountAmmountById(accountUser.getId(), accountUser.getAmount()); //обновляем значения в базе
+                this.databaseActions.updateAccountAmmountById(anotherAccountUser.getId(), anotherAccountUser.getAmount());
+                // логируем перевод
+                java.sql.Date date = new java.sql.Date( (new java.util.Date()).getTime()); // вычисляем текущую дату
+                // добавляем запись для счёта, с которого переводили
+                this.databaseActions.insertOperation(date, accCodeAccount, accountUser.getId(),
+                        anotherAccountUser.getId(), sum, oldAmountAccountUser, accountUser.getAmount());
+                // добавляем запись для счёта на который переводили
+                this.databaseActions.insertOperation(date, accCodeAtherAccount, accountUser.getId(),
+                        anotherAccountUser.getId(), sumTransf, oldAmountAnotherAccountUser, anotherAccountUser.getAmount());
+            }
+        }
+    }
 
     void action() {
         boolean flMain = true;
@@ -179,7 +222,7 @@ class Controller {
         }
     }
 
-    public static String sha1(String message) {
+    private static String sha1(String message) {
         byte[] bytes = new byte[0];
         try {
             MessageDigest sha1 = MessageDigest.getInstance("SHA-1");

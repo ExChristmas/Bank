@@ -5,7 +5,6 @@ import java.sql.Date;
 
 public class Operation {
 
-    private int id;
     private Date dateOfOperation;
     private Currecy currency;
     private int accountTransferred;
@@ -16,7 +15,6 @@ public class Operation {
 
     Operation (Date dateOfOperation, Currecy currency, int accountTransferred, int accountTransferredTo,
                BigDecimal transferAmount, BigDecimal amountOfFundsToTransfer, BigDecimal amountOfFundsAfterTransfer) {
-        this.id = 0;
         this.dateOfOperation = dateOfOperation;
         this.currency = currency;
         this.accountTransferred = accountTransferred;
@@ -24,14 +22,6 @@ public class Operation {
         this.transferAmount = transferAmount;
         this.amountOfFundsToTransfer = amountOfFundsToTransfer;
         this.amountOfFundsAfterTransfer = amountOfFundsAfterTransfer;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public Date getDateOfOperation() {

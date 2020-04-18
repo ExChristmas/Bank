@@ -11,6 +11,7 @@ public class User {
     private String address;
     private String phone;
     private List<Account> accountList;
+    private List<Operation> operationList;
 
     public User (String login, String password, String address, String phone) {
         this.id = 0;
@@ -19,6 +20,7 @@ public class User {
         this.address = address;
         this.phone = phone;
         this.accountList = new ArrayList<Account>();
+        this.operationList = new ArrayList<Operation>();
     }
 
     public int getId() {
@@ -71,5 +73,17 @@ public class User {
 
     public void setAddAccountList(Account account) {
         this.accountList.add(account);
+    }
+
+    public List<Operation> getOperationList() {
+        return this.operationList;
+    }
+
+    public void setOperationList(List<Operation> operationList) {
+        this.operationList = operationList;
+    }
+
+    public void setAddOperationList(Operation operation) {
+        this.operationList.add(operation);
     }
 }

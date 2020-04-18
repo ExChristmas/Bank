@@ -22,11 +22,15 @@ public class Account {
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void replenishAccount(BigDecimal sum) {
-        this.amount = this.getAmount().add(sum);
+        this.amount = this.amount.add(sum);
+    }
+
+    public void deductFromTheAccount(BigDecimal sum) {
+        this.amount = this.amount.subtract(sum);
     }
 
     public void setId(String id) {

@@ -49,10 +49,46 @@ public class DatabaseActions {
                 acc.add(rs.getString(4));
                 data.add(acc);
             }
+            rs.close();
+            query.close();
             return data;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public List<String> selectFirstAccountByClientId(int client_id) { //берём id первого попавшегося счёта у клиента с данным id
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account WHERE client_id = " + client_id);
+            ResultSet rs = query.executeQuery();
+            rs.next();
+            List<String> account = new ArrayList<String>();
+            account.add(rs.getString(1));
+            account.add(rs.getString(2));
+            account.add(rs.getString(3));
+            account.add(rs.getString(4));
+            rs.close();
+            query.close();
+            return account;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public int selectUserIdByPhone(String phone) { // возврат id пользователя по номеру телефона
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE phone = '" + phone + "'");
+            ResultSet rs = query.executeQuery();
+            rs.next();
+            int id = rs.getInt(1);
+            rs.close();
+            query.close();
+            return id;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
         }
     }
 
@@ -84,7 +120,7 @@ public class DatabaseActions {
         }
     }
 
-    public String selectUserPassword(String login) { // возврат записи из таблицы User по логину или номеру телефона
+    public String selectUserPassword(String login) { // возврат пароля из таблицы User по логину или номеру телефона
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM User WHERE login = '" + login + "'");
             ResultSet rs = query.executeQuery();
@@ -229,8 +265,8 @@ public class DatabaseActions {
                     "id int IDENTITY(1,1)," +
                     "date_of_operation date," +
                     "acc_code ENUM('RUB', 'USD', 'EUR', 'CNY')," +
-                    "account_transferred int," +
-                    "account_transferred_to int," +
+                    "account_transferred varchar(255)," +
+                    "account_transferred_to varchar(255)," +
                     "transfer_amount decimal," +
                     "amount_of_funds_to_transfer decimal," +
                     "amount_of_funds_after_transfer decimal," +
@@ -282,8 +318,8 @@ public class DatabaseActions {
         }
     }
 
-    public void insertOperation(Date date_of_operation, String acc_code, int account_transferred,
-                                int account_transferred_to, BigDecimal transfer_amount,
+    public void insertOperation(Date date_of_operation, String acc_code, String account_transferred,
+                                String account_transferred_to, BigDecimal transfer_amount,
                                 BigDecimal amount_of_funds_to_transfer, BigDecimal amount_of_funds_after_transfer) { // занесение операции в базу
         try {
             statement.executeUpdate("INSERT INTO Operation " +
@@ -292,9 +328,9 @@ public class DatabaseActions {
                     "amount_of_funds_after_transfer)" +
                     " VALUES ('" +
                     date_of_operation + "', '" +
-                    acc_code + "', " +
-                    account_transferred + ", " +
-                    account_transferred_to + ", " +
+                    acc_code + "', '" +
+                    account_transferred + "', '" +
+                    account_transferred_to + "', " +
                     transfer_amount + ", " +
                     amount_of_funds_to_transfer + ", " +
                     amount_of_funds_after_transfer +

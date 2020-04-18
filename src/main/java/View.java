@@ -64,6 +64,7 @@ class View {
     }
 
     int chooseAnAccount(List<String> accounts) {
+        System.out.println("Выберите счёт:");
         for (int i = 1; i <= accounts.size(); i++) {
             System.out.println(i + ")" + accounts.get(i - 1));
         }
