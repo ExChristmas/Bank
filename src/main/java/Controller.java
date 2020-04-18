@@ -4,10 +4,13 @@ import model.Operation;
 import model.User;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.security.MessageDigest;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 class Controller {
 
@@ -53,6 +56,29 @@ class Controller {
 
     /*****************************************Autorization user*************************************************/
 
+    private static java.sql.Date convertFromJAVADateToSQLDate(
+            java.util.Date javaDate) {
+        java.sql.Date sqlDate = null;
+        if (javaDate != null) {
+            sqlDate = new java.sql.Date(javaDate.getTime());
+        }
+        return sqlDate;
+    }
+
+    private List<Operation> returnOperations(String idAccount) throws ParseException {
+        List<Operation> operationList = new ArrayList<Operation>();
+        ArrayList<ArrayList<String>> data = this.databaseActions.selectOperationsByIdAccounts(idAccount);
+        DateFormat format = new SimpleDateFormat("yyyy-mm-dd", Locale.ENGLISH);
+        for (ArrayList<String> datum : data) {
+            // переводим строку в java.sql.Data
+            java.util.Date date = format.parse(datum.get(0));
+            Operation operation = new Operation(convertFromJAVADateToSQLDate(date), datum.get(1), datum.get(2), datum.get(3),
+                    new BigDecimal(datum.get(4)), new BigDecimal(datum.get(5)), new BigDecimal(datum.get(6)));
+            operationList.add(operation);
+        }
+        return operationList;
+    }
+
     private List<Account> returnAccounts(int idUser) {
         List<Account> accountList = new ArrayList<Account>();
         ArrayList<ArrayList<String>> data = this.databaseActions.selectAccountByClientId(idUser);
@@ -60,6 +86,14 @@ class Controller {
             Account account = new Account(datum.get(0), Integer.parseInt(datum.get(1)),
                     new BigDecimal(datum.get(2)), datum.get(3));
             accountList.add(account);
+        }
+        // для каждого счёта ищем операцию и заносим в список
+        for(Account account : accountList) {
+            try {
+                returnOperations(account.getId());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         return accountList;
     }
@@ -117,7 +151,7 @@ class Controller {
 
     /********************************************Money transaction**************************************************/
 
-    private void transction() {
+    private void transctionMoney() {
         if (this.user.getAccountList().isEmpty()) {
             System.out.println("У Вас нет ни одного счёта!");
         } else {
@@ -125,37 +159,59 @@ class Controller {
             for (Account account : this.user.getAccountList()) {
                 accounts.add(account.toString());
             }
-            Account accountUser = this.user.getAccountList().get(this.view.chooseAnAccount(accounts)); //выбираем счёт с которого переводим
-            String numberPhone = this.view.getPhoneNumber(); // запрашиваем номер телефона другого пользователя
-            int idUserPhone = this.databaseActions.selectUserIdByPhone(numberPhone); // по номеру телефона узнаём id другого пользователя
-            List<String> firstAccountUser = this.databaseActions.selectFirstAccountByClientId(idUserPhone); // вычисляем первый попавшийся счёт другого пользователя
+            //выбираем счёт с которого переводим
+            Account accountUser = this.user.getAccountList().get(this.view.chooseAnAccount(accounts));
+            // запрашиваем номер телефона другого пользователя
+            String numberPhone = this.view.getPhoneNumber();
+            // по номеру телефона узнаём id другого пользователя
+            int idUserPhone = this.databaseActions.selectUserIdByPhone(numberPhone);
+            // вычисляем первый попавшийся счёт другого пользователя
+            List<String> firstAccountUser = this.databaseActions.selectFirstAccountByClientId(idUserPhone);
+            // оборачиваем в объект
             Account anotherAccountUser = new Account(firstAccountUser.get(0), Integer.parseInt(firstAccountUser.get(1)),
-                    new BigDecimal(firstAccountUser.get(2)), firstAccountUser.get(3)); // оборачиваем в объект
-            BigDecimal sum = this.view.getTransferAmount(); // запрашиваем сумму для перевода
+                    new BigDecimal(firstAccountUser.get(2)), firstAccountUser.get(3));
+            // запрашиваем сумму для перевода
+            BigDecimal sum = this.view.getTransferAmount();
             if (sum.compareTo(accountUser.getAmount()) < 0) { // если запрашиваемая сумма меньше той, что есть на счёте
                 System.out.println("Недостаточно средств на счёте!"); // то выводим ошибку
             } else { // иначе, совершаем перевод
+                // создаём переменную для изменения счёта, на который переводим
                 BigDecimal sumTransf = sum;
-                String accCodeAccount = accountUser.getAccCode(); // берём валюты счетов
+                // берём валюты счетов
+                String accCodeAccount = accountUser.getAccCode();
                 String accCodeAtherAccount = anotherAccountUser.getAccCode();
                 if (!accCodeAccount.equals(accCodeAtherAccount)) { // если валюты счетов не равны
-                    sumTransf = ConverterMoney.convert(sum, accCodeAccount, accCodeAtherAccount); // конвертируем сумму в валюте счёта зачисления
+                    // конвертируем сумму в валюте счёта зачисления
+                    sumTransf = ConverterMoney.convert(sum, accCodeAccount, accCodeAtherAccount);
                 }
                 // сохраняем старые значения счётов
                 BigDecimal oldAmountAccountUser = accountUser.getAmount();
                 BigDecimal oldAmountAnotherAccountUser = anotherAccountUser.getAmount();
-                accountUser.deductFromTheAccount(sum); // вычитаем переведённую сумму из счёта
-                anotherAccountUser.replenishAccount(sumTransf); // добавляем переведённую сумму на счёт
-                this.databaseActions.updateAccountAmmountById(accountUser.getId(), accountUser.getAmount()); //обновляем значения в базе
+                // вычитаем переведённую сумму из счёта
+                accountUser.deductFromTheAccount(sum);
+                // добавляем переведённую сумму на счёт
+                anotherAccountUser.replenishAccount(sumTransf);
+                //обновляем значения в базе
+                this.databaseActions.updateAccountAmmountById(accountUser.getId(), accountUser.getAmount());
                 this.databaseActions.updateAccountAmmountById(anotherAccountUser.getId(), anotherAccountUser.getAmount());
+                System.out.println("Перевод по номеру " + numberPhone + " выполнен!");
+
                 // логируем перевод
                 java.sql.Date date = new java.sql.Date( (new java.util.Date()).getTime()); // вычисляем текущую дату
                 // добавляем запись для счёта, с которого переводили
                 this.databaseActions.insertOperation(date, accCodeAccount, accountUser.getId(),
                         anotherAccountUser.getId(), sum, oldAmountAccountUser, accountUser.getAmount());
+                // обарачиваем в объект
+                Operation operationFirst = new Operation(date, accCodeAccount, accountUser.getId(),
+                        anotherAccountUser.getId(), sum, oldAmountAccountUser, accountUser.getAmount());
+                //добавляем в список операций текущего пользователя
+                this.user.setAddOperationList(operationFirst);
                 // добавляем запись для счёта на который переводили
                 this.databaseActions.insertOperation(date, accCodeAtherAccount, accountUser.getId(),
                         anotherAccountUser.getId(), sumTransf, oldAmountAnotherAccountUser, anotherAccountUser.getAmount());
+                Operation operationSecond = new Operation(date, accCodeAtherAccount, accountUser.getId(),
+                        anotherAccountUser.getId(), sumTransf, oldAmountAnotherAccountUser, anotherAccountUser.getAmount());
+                user.setAddOperationList(operationSecond);
             }
         }
     }
@@ -209,8 +265,7 @@ class Controller {
                                     replenishment(this.user);
                                     break;
                                 case 3:
-                                    String phoneNumber = view.getPhoneNumber();
-                                    System.out.println("Выполнен перевод по номеру телефона: " + phoneNumber);
+                                    transctionMoney();
                                     break;
                                 case 4:
                                     System.out.println("Вывод из таблицы Operation");

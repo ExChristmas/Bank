@@ -26,6 +26,32 @@ public class DatabaseActions {
         }
     }
 
+    public ArrayList<ArrayList<String>> selectOperationsByIdAccounts(String idAccount) {
+        try {
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Operation " +
+                    "WHERE account_transferred = " + idAccount + " OR account_transferred_to = " + idAccount);
+            ResultSet rs = query.executeQuery();
+            ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
+            while (rs.next()) {
+                ArrayList<String> acc = new ArrayList<String>();
+                acc.add(rs.getString(2));
+                acc.add(rs.getString(3));
+                acc.add(rs.getString(4));
+                acc.add(rs.getString(5));
+                acc.add(rs.getString(6));
+                acc.add(rs.getString(7));
+                acc.add(rs.getString(8));
+                data.add(acc);
+            }
+            rs.close();
+            query.close();
+            return data;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public void updateAccountAmmountById(String id, BigDecimal amount) {
         try {
             statement.executeUpdate("UPDATE Account SET " +

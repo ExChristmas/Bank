@@ -6,17 +6,17 @@ import java.sql.Date;
 public class Operation {
 
     private Date dateOfOperation;
-    private Currecy currency;
-    private int accountTransferred;
-    private int accountTransferredTo;
+    private String amount ;
+    private String accountTransferred;
+    private String accountTransferredTo;
     private BigDecimal transferAmount;
     private BigDecimal amountOfFundsToTransfer;
     private BigDecimal amountOfFundsAfterTransfer;
 
-    Operation (Date dateOfOperation, Currecy currency, int accountTransferred, int accountTransferredTo,
+    public Operation (Date dateOfOperation, String amount, String accountTransferred, String accountTransferredTo,
                BigDecimal transferAmount, BigDecimal amountOfFundsToTransfer, BigDecimal amountOfFundsAfterTransfer) {
         this.dateOfOperation = dateOfOperation;
-        this.currency = currency;
+        this.amount = amount;
         this.accountTransferred = accountTransferred;
         this.accountTransferredTo = accountTransferredTo;
         this.transferAmount = transferAmount;
@@ -32,23 +32,23 @@ public class Operation {
         this.dateOfOperation = dateOfOperation;
     }
 
-    public Currecy getCurrency() {
-        return currency;
+    public String getCurrency() {
+        return amount;
     }
 
-    public void setCurrency(Currecy currency) {
-        this.currency = currency;
+    public void setCurrency(String amount) {
+        this.amount = amount;
     }
 
-    public int getAccountTransferred() {
+    public String getAccountTransferred() {
         return accountTransferred;
     }
 
-    public void setAccountTransferred(int accountTransferred) {
+    public void setAccountTransferred(String  accountTransferred) {
         this.accountTransferred = accountTransferred;
     }
 
-    public int getAccountTransferredTo() {
+    public String getAccountTransferredTo() {
         return accountTransferredTo;
     }
 
@@ -60,7 +60,7 @@ public class Operation {
         this.transferAmount = transferAmount;
     }
 
-    public void setAccountTransferredTo(int accountTransferredTo) {
+    public void setAccountTransferredTo(String accountTransferredTo) {
         this.accountTransferredTo = accountTransferredTo;
     }
 
@@ -80,5 +80,3 @@ public class Operation {
         this.amountOfFundsAfterTransfer = amountOfFundsAfterTransfer;
     }
 }
-
-enum Currecy { RUS, USD, EUR, CNY }
