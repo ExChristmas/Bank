@@ -24,6 +24,13 @@ public class Operation {
         this.amountOfFundsAfterTransfer = amountOfFundsAfterTransfer;
     }
 
+    @Override
+    public String toString() {
+        return this.dateOfOperation + " " + this.amount + " " + this.accountTransferred + " "  +
+                this.accountTransferredTo + " " + this.transferAmount + " " + this.amountOfFundsToTransfer +
+                this.amountOfFundsAfterTransfer;
+    }
+
     public Date getDateOfOperation() {
         return dateOfOperation;
     }

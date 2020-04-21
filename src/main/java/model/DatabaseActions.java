@@ -29,7 +29,10 @@ public class DatabaseActions {
     public ArrayList<ArrayList<String>> selectOperationsByIdAccounts(String idAccount) {
         try {
             PreparedStatement query = connection.prepareStatement("SELECT * FROM Operation " +
-                    "WHERE account_transferred = " + idAccount + " OR account_transferred_to = " + idAccount);
+                    "WHERE account_transferred = ? OR account_transferred_to = ?");
+            query.setString(1, idAccount);
+            query.setString(2, idAccount);
+
             ResultSet rs = query.executeQuery();
             ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
             while (rs.next()) {
@@ -64,7 +67,9 @@ public class DatabaseActions {
 
     public ArrayList<ArrayList<String>> selectAccountByClientId(int client_id){ // возврат записей из таблицы со счетами по foreign key клиента
         try {
-            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account WHERE client_id = " + client_id);
+            PreparedStatement query = connection.prepareStatement("SELECT * FROM Account WHERE client_id = ?");
+            query.setInt(1, client_id);
+
             ResultSet rs = query.executeQuery();
             ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
             while (rs.next()) {

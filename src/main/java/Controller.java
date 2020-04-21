@@ -24,10 +24,6 @@ class Controller {
         this.user = null;
     }
 
-    private void createUser(String login, String password, String address, String phone) {
-        String hashCodePassword = sha1(password);
-        this.databaseActions.insertUser(login, hashCodePassword, address, phone);
-    }
 /************************************Registration user******************************************************/
     private void registration() {
         String login = this.view.getLogin();
@@ -72,11 +68,27 @@ class Controller {
         for (ArrayList<String> datum : data) {
             // переводим строку в java.sql.Data
             java.util.Date date = format.parse(datum.get(0));
-            Operation operation = new Operation(convertFromJAVADateToSQLDate(date), datum.get(1), datum.get(2), datum.get(3),
-                    new BigDecimal(datum.get(4)), new BigDecimal(datum.get(5)), new BigDecimal(datum.get(6)));
+            Operation operation = new Operation(convertFromJAVADateToSQLDate(date), datum.get(1),
+                    datum.get(2), datum.get(3), new BigDecimal(datum.get(4)), new BigDecimal(datum.get(5)),
+                    new BigDecimal(datum.get(6)));
             operationList.add(operation);
         }
         return operationList;
+    }
+
+    private List<Operation> returnOperationsList(List<Account> accounts) {
+        List<Operation> operationsList = new ArrayList<Operation>();
+        try {
+        for(Account account : accounts) {
+
+            List<Operation> operations = returnOperations(account.getId());
+            operationsList.addAll(operations);
+        }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+            return operationsList;
     }
 
     private List<Account> returnAccounts(int idUser) {
@@ -86,14 +98,6 @@ class Controller {
             Account account = new Account(datum.get(0), Integer.parseInt(datum.get(1)),
                     new BigDecimal(datum.get(2)), datum.get(3));
             accountList.add(account);
-        }
-        // для каждого счёта ищем операцию и заносим в список
-        for(Account account : accountList) {
-            try {
-                returnOperations(account.getId());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
         }
         return accountList;
     }
@@ -110,7 +114,9 @@ class Controller {
         List<String> userList = this.databaseActions.selectUserByLogin(login);
         User usr = new User(login, password, userList.get(2), userList.get(3));
         if (usr.getAccountList().isEmpty()) {
-            usr.setAccountList(returnAccounts(this.databaseActions.selectUserIdByLogin(login)));
+            List<Account> accountsList = returnAccounts(this.databaseActions.selectUserIdByLogin(login));
+            usr.setAccountList(accountsList);
+            usr.setOperationList(returnOperationsList(accountsList));
         }
             return usr;
     }
@@ -216,6 +222,16 @@ class Controller {
         }
     }
 
+    /*********************************************Output operations**************************************************/
+
+    void outputOperations() {
+        List<String> operationsStrings = new ArrayList<String>();
+        for(Operation operation : this.user.getOperationList()) {
+            operationsStrings.add(operation.toString());
+        }
+        this.view.printOperations(operationsStrings);
+    }
+
     void action() {
         boolean flMain = true;
         while (flMain) {
@@ -268,7 +284,7 @@ class Controller {
                                     transctionMoney();
                                     break;
                                 case 4:
-                                    System.out.println("Вывод из таблицы Operation");
+                                    outputOperations();
                                     break;
                             }
                         }

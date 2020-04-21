@@ -75,4 +75,15 @@ class View {
             return -1;
         }
     }
+
+    void printOperations(List<String> operationsUsers) {
+        if (operationsUsers.isEmpty()) {
+            System.out.println("Операций не обнаружено");
+        } else {
+            System.out.println("Список Ваших операций:");
+            for (String operation : operationsUsers) {
+                System.out.println(operation);
+            }
+        }
+    }
 }
